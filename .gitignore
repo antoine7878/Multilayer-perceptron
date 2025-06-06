@@ -1,0 +1,7 @@
+.vscode
+__pycache__
+.cache/
+.venv
+theta.json
+data/
+modelfile
