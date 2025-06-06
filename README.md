@@ -16,7 +16,6 @@ All core neural network logic — including layer definition, weight initializat
 - Dataset preprocessing: `train/test splitting`, `normalization`, `one-hot encoding`
 - Training  and model evaluation: `loss`, `accuracy`
 - Model serialization to disk (weights and topology, activation)
-- Batch processing
 - Fully vectorized NumPy based computations
 - Stochastic and mini batch `Gradient Descent`
 - Tested on 2 datasets:
