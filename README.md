@@ -8,7 +8,7 @@ All core neural network logic — including layer definition, weight initializat
 
 ## 🔨 Try it yourself
 
-```shell
+```
 make split data.csv
 make train modelfile
 make eval modefile
