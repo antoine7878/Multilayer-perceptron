@@ -31,7 +31,7 @@ def train(args):
         validation=(x_test, y_test),
         optimizer=RMSProp(learning_rate=0.0001),
         epochs=1000,
-        batch_size=32,
+        batch_size=4,
         early_stop=("val_accuracy", 0.001, 32),
     )
 

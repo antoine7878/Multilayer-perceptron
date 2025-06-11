@@ -1,10 +1,12 @@
 import numpy as np
 import pickle
 
-from .layers import Layer, Manual
+
 from .loss import cross_entropy, cross_entropy_softmax_1
-from .metrics import accuracy
 from .optimizers import SGD, Optimizer
+from .layers import Layer, Manual
+from .activations import softmax
+from .metrics import accuracy
 from .utils import shuffle
 
 
@@ -17,6 +19,7 @@ class Sequential:
         self.loss_1 = cross_entropy_softmax_1
         for i in range(1, self.depth):
             self.layers[i].connect(self.layers[i - 1].size)
+        assert layers[-1].activation == softmax, "Last layer activation must be softmax"
 
     def __call__(self, x: np.ndarray) -> np.ndarray:
         for layer in self.layers:
@@ -33,29 +36,23 @@ class Sequential:
         early_stop: tuple = ("", 0, 0),
         optimizer: Optimizer = SGD(0.01),
     ) -> dict:
-        self.history = {"loss": [], "accuracy": [],
-                        "val_loss": [], "val_accuracy": []}
+        self.history = {"loss": [], "accuracy": [], "val_loss": [], "val_accuracy": []}
         batch_count = int(len(x) / batch_size)
         x_test = validation[0]
         y_test = validation[1]
         self.add_history(y, self(x), y_test, self(x_test))
-        lst = [f" - {key}: {value[-1]:#.4g}" for key,
-               value in self.history.items()]
+        lst = [f" - {key}: {value[-1]:#.4g}" for key, value in self.history.items()]
         print(f"Epoch 0/{epochs} {''.join(lst)}")
         for epoch_i in range(epochs):
-            x_suffle, y_suffle = shuffle(x,y)
-
+            x_suffle, y_suffle = shuffle(x, y)
 
             for batch_i in range(batch_count):
-                x_batch = x_suffle[batch_i *
-                                   batch_size: min((batch_i + 1) * batch_size, len(x))]
-                y_batch = y_suffle[batch_i *
-                                   batch_size: min((batch_i + 1) * batch_size, len(x))]
+                x_batch = x_suffle[batch_i * batch_size : min((batch_i + 1) * batch_size, len(x))]
+                y_batch = y_suffle[batch_i * batch_size : min((batch_i + 1) * batch_size, len(x))]
                 self.__update(x_batch, y_batch, optimizer)
 
             self.add_history(y, self(x), y_test, self(x_test))
-            lst = [f" - {key}: {value[-1]:#.4g}" for key,
-                   value in self.history.items()]
+            lst = [f" - {key}: {value[-1]:#.4g}" for key, value in self.history.items()]
             print(f"Epoch {epoch_i + 1}/{epochs} {''.join(lst)}")
 
             if self.early_stop(epoch_i, early_stop):
@@ -67,13 +64,7 @@ class Sequential:
         (metric, delta, patience) = early_stop
         if not metric or patience < 1 or i <= patience:
             return False
-        if (
-            all(
-                [
-                    acc + delta > self.history[metric][-1] for acc in self.history[metric][-patience:-1]
-                ]
-            )
-        ):
+        if all([acc + delta > self.history[metric][-1] for acc in self.history[metric][-patience:-1]]):
             return True
         return False
 
@@ -102,8 +93,7 @@ class Sequential:
 
         for l_id in range(2, self.depth):
             layer = self.layers[-l_id]
-            sp = np.apply_along_axis(
-                func1d=layer.activation_1, axis=1, arr=layer.z)
+            sp = np.apply_along_axis(func1d=layer.activation_1, axis=1, arr=layer.z)
             delta = np.matmul(delta, self.layers[-l_id + 1].weights.T) * sp
             layer.grad_b = np.sum(delta, axis=0, keepdims=True)
             layer.grad_w = np.matmul(self.layers[-l_id - 1].act.T, delta)

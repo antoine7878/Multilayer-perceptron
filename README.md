@@ -6,6 +6,14 @@ It involves implementing a feedforward, fully connected neural network from scra
 The project is structured around understanding neural networks at the algorithmic level, while enforcing strict modularity and clean code.
 All core neural network logic — including layer definition, weight initialization, activation functions, and learning algorithms — must be implemented manually.
 
+## 🔨 Try it yourself
+
+```bash
+make split data.csv
+make train modelfile
+make eval modefile
+```
+
 ## ⚙️ Features
 
 - Modular Fully Connected network
